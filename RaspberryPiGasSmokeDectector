@@ -1,0 +1,21 @@
+from gpiozero import Buzzer, DigitalInputDevice # Buzzer와 DigitalInputDevice 선언
+import time                    # 시간 관련 라이브러리 호출
+
+bz = Buzzer(18)                # 부저의 gpio핀 18번 할당
+gas = DigitalInputDevice(17)   # 가스 감지기의 gpio핀 17번 할당
+
+try:
+    while True:                # 0.2초마다 상태를 계속 체크하는 무한 반복
+        if gas.value == 0:     # 가스가 감지됐을 때 0 이라는 신호를 내보낸다.
+            print("가스 감지됨") # "가스 감지됨"을 출력
+            bz.on()            # 부저를 키는 함수
+        else:                  
+            print("정상")       # 가스가 감지되는 않는 경우 "정상"을 출력
+            bz.off()           # 부저를 끄는 함수
+
+        time.sleep(0.2)        # CPU과부화 방지로 0.2초간 휴식
+
+except KeyboardInterrupt:      # 사용자가 Ctrl + C 를 누르면 프로그램 종료 
+    pass
+
+bz.off()                       # 부저를 끄고 프로그램 종료
