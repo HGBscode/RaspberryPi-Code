@@ -1,0 +1,27 @@
+from gpiozero import MotionSensor # 라즈베리파이용 하드웨어 제어 라이브러리에서 PIR(인체 감지 센서)를 다루기 위한 클래스 호출
+import time # 시간 제어를 위해 시간 관련 모듈 호출
+from picamera2 import Picamera2 # 카메라 제어를 위한 Picamer2 호출
+import datetime # 사진 찍힌 날짜와 시간을 기록하기 위한 날짜 시간 모듈 호출
+
+pirPin = MotionSensor(16) # PIR 센서의 출력 핀을 GPIO핀 16번 할당
+
+picam2 = Picamera2() # 카메라 하드웨어 제어를 위한 객체 생성
+camera_config = picam2.create_preview_configuration() # 카메라 기본 설청값 생성
+picam2.configure(camera_config) # 위에서 만든 설정값을 카메라 하드웨어에 적용
+picam2.start() # 카메라 활성화
+
+try:   # 구문 시작
+    while True:     # 프로그램이 종료될 때까지 무한 반복 시작
+        try:        # 무한 반복 안에서 구문 시작
+            sensorValue = pirPin.value # 센서로부터 값을 받아오기 
+            if sensorValue == 1: # 움직임이 감지되면 1
+                now = datetime.datetime.now() # 움직임이 감지된 그 시각과 날짜를 기록
+                print(now) # 위에서 기록한 값을 출력해 촬영이 진행됨을 알려줌
+                fileName = now.strftime('%Y-%m-%d %H:%M:%S') # 가져온 날짜와 시간을 파일 이름으로 쓸 수 있게 문자열로 변환
+                picam2.capture_file(fileName + '.jpg') # 변환된 날짜와 이름을 파일명으로 하여 저장함
+                time.sleep(0.5) # 사진이 한번 찍히고 0.5초정도 텀을 두어 과부화 방지
+        except: # 루프 안에서 센서 등 오류가 나더라도 계속 진행
+            pass
+
+except KeyboardInterrupt: # 사용자가 Ctrl + C를 눌러 프로그램 종료를 할 수 있게 만듬
+    pass
