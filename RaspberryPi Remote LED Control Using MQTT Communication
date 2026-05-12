@@ -1,0 +1,45 @@
+import paho.mqtt.client as mqtt # MQTT 통신을 위한 라이브러리
+import time # 시간 기능 사용을 위한 time 모듈
+from gpiozero import LED # 라즈베리파이 GPIO 제어를 위한 LED 클래스
+import threading # 병렬 처리를 위한 멀티스레딩 모듈 
+
+greenLed = LED(16) # 각 색깔에 GPIO 핀 할당
+blueLed = LED(20) # 각 색깔에 GPIO 핀 할당
+redLed = LED(21) # 각 색깔에 GPIO 핀 할당
+
+def on_message(client, userdata, msg): # 콜백 함수 정의 
+    print(msg.topic + " " + str(msg.payload)) # 수신된 토픽명과 데이터 출력
+    message = msg.payload.decode() # 바이트 형태의 데이터를 문자열로 변환
+    print(message) # 메시지 출력
+    if message == "green_on": # LED 점등 로직 
+        greenLed.on()
+    elif message == "green_off": # LED 소등 로직 
+        greenLed.off()
+    elif message == "blue_on": # LED 점등 로직 
+        blueLed.on()
+    elif message == "blue_off": # LED 소등 로직
+        blueLed.off()
+    elif message == "red_on": # LED 점등 로직 
+        redLed.on()
+    elif message == "red_off": # LED 소등 로직
+        redLed.off()
+
+client = mqtt.Client() # 클라이언트 객체 생성
+client.on_message = on_message # 메시지 수신 시 실행될 함수 등록
+
+broker_address = "RaspberryPi Adress" # MQTT에서 접속할 라즈베리파이 주소 입력
+client.connect(broker_address) # 위에 넣은 주소에 접속
+client.subscribe("led", 1) # 'led' 토픽 구독
+
+count = 0 # 발행할 데이터의 초기값 설정
+def send_thread(): # 
+    global count # 전역변수 count 사용 
+    while True: # 무한 반복 
+        count = count + 1 # count 1 증가 
+        client.publish("hello", str(count)) # 'hello'라는 토픽으로 증가된 카운트 값 문자열로 변환
+        time.sleep(1.0) # 1초간 휴식 
+
+task = threading.Thread(target=send_thread) # send thread 함수를 타겟으로 스레드 생성 
+task.start() # 스레드 시작 
+
+client.loop_forever() # 메시지 수신을 위해 무한반복
